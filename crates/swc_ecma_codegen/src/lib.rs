@@ -1946,28 +1946,19 @@ impl MacroNode for BinExpr {
         srcmap!(emitter, self, true);
 
         {
-            let mut left = Some(self);
-            let mut lefts = Vec::new();
+            let mut left = Some(ref_maybe_mut!(*self));
+            let mut first = Some(());
             while let Some(l) = left {
-                lefts.push(l);
+                if first.take().is_some() {
+                    emit!(l.left);
+                }
 
                 match ref_maybe_mut!(*l.left) {
                     Expr::Bin(b) => {
+                        emitter.emit_bin_expr_trailing(b)?;
                         left = Some(b);
-                    }
+                    },
                     _ => break,
-                }
-            }
-
-            let len = lefts.len();
-
-            for (i, left) in lefts.into_iter().rev().enumerate() {
-                if i == 0 {
-                    emit!(left.left);
-                }
-                // Check if it's last
-                if i + 1 != len {
-                    emitter.emit_bin_expr_trailing(left)?;
                 }
             }
         }

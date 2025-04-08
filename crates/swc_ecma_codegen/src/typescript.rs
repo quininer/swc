@@ -694,13 +694,16 @@ impl MacroNode for TsModuleDecl {
             emit!(self.id);
         }
 
-        if let Some(mut body) = ref_maybe_mut!(self.body) {
-            while let TsNamespaceBody::TsNamespaceDecl(decl) = body {
-                punct!(emitter, ".");
-                emit!(decl.id);
-                body = ref_maybe_mut!(*decl.body);
+        if let Some(body) = ref_maybe_mut!(self.body) {
+            {
+                let mut body = ref_maybe_mut!(*body);
+                while let TsNamespaceBody::TsNamespaceDecl(decl) = body {
+                    punct!(emitter, ".");
+                    emit!(decl.id);
+                    body = ref_maybe_mut!(*decl.body);
+                }
+                formatting_space!(emitter);
             }
-            formatting_space!(emitter);
             emit!(body);
         }
         Ok(())
